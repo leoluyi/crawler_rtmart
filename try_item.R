@@ -64,6 +64,7 @@ get_item_link <- function(link, p_data_num = 999) {
       item_link <- c(item_link, temp)
     }
   }
+  item_link
 }
 
 # item_links <- unlist(sapply(link_1[1:2] , get_item_link, USE.NAMES = FALSE))
