@@ -25,11 +25,8 @@ link_1 <- gsub("http://www.rt-mart.com.tw/direct/http://www.rt-mart.com.tw/direc
 
 # get items ---------------------------------------------------------------
 
-## get item links
-get_item_link <- function(link, p_data_num = 10000) {
-  # link <- link_1[1]
-  if (length(link)!=1) return(NULL)
-  page_link <- paste0(link, sprintf("&p_data_num=%s", as.character(p_data_num)))
+
+get_res <- function(page_link) {
   res <- tryCatch({
     GET(page_link,
         user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/45.0.2454.101 Safari/537.36")
@@ -40,7 +37,33 @@ get_item_link <- function(link, p_data_num = 10000) {
 
   node <- content(res, encoding = "UTF-8")
   # node["//h5[@class='for_proname']/a"]
-  unname(xpathSApply(node, "//h5[@class='for_proname']/a", xmlAttrs))
+}
+
+
+## get item links
+get_item_link <- function(link, p_data_num = 999) {
+  # link <- link_1[1]
+  if (length(link) != 1) return(NULL)
+  page_link <- paste0(link, sprintf("&p_data_num=%s", as.character(p_data_num)))
+
+  node <- get_res(page_link)
+  item_link <- unname(xpathSApply(node, "//h5[@class='for_proname']/a", xmlAttrs))
+
+  ## pagination
+  # node["//li[@class='list_num']/a"]
+  if (length(node["//li[@class='list_num']/a"]) != 0) {
+    pagination_links <- sprintf(
+      "http://www.rt-mart.com.tw/direct/%s",
+      unique(unname(xpathSApply(
+        node, "//li[@class='list_num']/a", xmlAttrs
+      ))), collapse="")
+
+    for (i in seq_along(pagination_links)) {
+      node_temp <- get_res(pagination_links[i])
+      temp <- unname(xpathSApply(node_temp, "//h5[@class='for_proname']/a", xmlAttrs))
+      item_link <- c(item_link, temp)
+    }
+  }
 }
 
 # item_links <- unlist(sapply(link_1[1:2] , get_item_link, USE.NAMES = FALSE))
