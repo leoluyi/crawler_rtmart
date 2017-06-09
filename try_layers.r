@@ -1,5 +1,5 @@
 library(httr)
-library(XML)
+library(rvest)
 library(dplyr)
 source("utils/saveHTML.r") # saveHTML()
 
@@ -13,9 +13,9 @@ res_sitemap <- GET(url_sitemap,
 )
 
 node_1 <- content(res_sitemap, encoding = "UTF-8")
-name_1 <- xpathSApply(node_1, "//ul[@class='main_nav']/li/a", xmlValue)
+name_1 <- node_1 %>% html_nodes("ul.main_nav li a") %>% html_text()
 link_1 <- paste0("http://www.rt-mart.com.tw/direct/",
-                 unname(xpathSApply(node_1, "//ul[@class='main_nav']/li/a", xmlAttrs)))
+                 node_1 %>% html_nodes("ul.main_nav li a") %>% html_attr("href"))
 
 # ## GET layer 2
 # # node_1["//div[@class='list_box']/h4"]
@@ -26,7 +26,7 @@ link_1 <- paste0("http://www.rt-mart.com.tw/direct/",
 layer2 <- GET(link_1[1])
 node_2 <- content(layer2, encoding = "UTF-8")
 # node_2["//div[@class='classify_leftBox']/h3"]
-name_2 <- xpathSApply(node_2, "//div[@class='classify_leftBox']/h3", xmlValue)
+name_2 <- xpathSApply(node_2, "div.'classify_leftBox h3", xmlValue)
 n_name_2 <- length(name_2)
 link_2 <- unname(xpathSApply(node_2, "//div[@class='classify_leftBox']/h3/a", xmlAttrs))
 
